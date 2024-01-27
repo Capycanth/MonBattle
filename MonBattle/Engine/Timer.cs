@@ -1,4 +1,4 @@
-﻿namespace Capybara_1.Engine
+﻿namespace MonBattle.Engine
 {
     public class Timer
     {

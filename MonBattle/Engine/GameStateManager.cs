@@ -1,22 +1,24 @@
-﻿using Capybara_1.Config.Internal;
-using Capybara_1.States;
+﻿using MonBattle.Config.Internal;
+using MonBattle.States;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework.Content;
 
-namespace Capybara_1.Engine
+namespace MonBattle.Engine
 {
     public class GameStateManager
     {
         #region Singleton
         private static GameStateManager _singleton;
 
-        public static GameStateManager GetGameStateManager()
+        public static GameStateManager GetGameStateManager(ContentManager _contentManager)
         {
             if (_singleton == null)
             {
                 _singleton = new GameStateManager();
+                _singleton._contentManager = _contentManager;
             }
             return _singleton;
         }
@@ -24,36 +26,79 @@ namespace Capybara_1.Engine
 
         private IGameState currentState;
         private List<GameStateTransition> GSTs = new List<GameStateTransition>();
+        private List<GSTEnum> PauseUpdateStates = new List<GSTEnum>() { GSTEnum.DELAY };
+        private ContentManager _contentManager;
 
         public void ChangeState(IGameState newState)
         {
             currentState?.UnloadContent(); // Unload content of the current state if it exists
             currentState = newState;
+            currentState.LoadContent(_contentManager);
             currentState.Initialize();
-            currentState.LoadContent();
-            GSTs.AddRange(LoaderPackage.DefaultGST);
+            DetermineGSTs();
         }
 
         public void Update(GameTime gameTime)
         {
+            if (Game.transitionTo != GameStateEnum.NONE)
+            {
+                TransitionByGSEnum();
+                Game.transitionTo = GameStateEnum.NONE;
+            }
+
             if (GSTs.Count == 0)
             {
                 currentState?.Update(gameTime);
+                return;
             }
-            else
+
+            if (GSTs[0].IsCompleted)
             {
-                if (GSTs[0].IsCompleted)
-                {
-                    GSTs.RemoveAt(0);
-                    return;
-                }
-                GSTs[0].Update(gameTime);
+                GSTs.RemoveAt(0);
+                return;
             }
+
+            GSTs[0].Update(gameTime);
+
+            if (PauseUpdateStates.Contains(GSTs[0].GSTEnum))
+            {
+                return;
+            }
+
+            currentState?.Update(gameTime);
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
             currentState?.Draw(spriteBatch);
+        }
+
+        private void TransitionByGSEnum()
+        {
+            switch (Game.transitionTo)
+            {
+                case GameStateEnum.HOME:
+                    ChangeState(new GSHome());
+                    break;
+                case GameStateEnum.BATTLE:
+                    break;
+                default:
+                    throw new Exception();
+            }
+        }
+
+        private void DetermineGSTs()
+        {
+            switch (Game.transitionTo)
+            {
+                case GameStateEnum.HOME:
+                    // No Transition
+                    break;
+                case GameStateEnum.BATTLE:
+                default:
+                    GSTs.AddRange(LoaderPackage.DefaultGST);
+                    break;
+            }
         }
     }
 

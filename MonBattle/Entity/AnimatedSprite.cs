@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
-namespace Capybara_1.Entity
+namespace MonBattle.Entity
 {
     public class AnimatedSprite : DrawableBase
     {

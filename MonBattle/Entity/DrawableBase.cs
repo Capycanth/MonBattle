@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Capybara_1.Entity
+namespace MonBattle.Entity
 {
     public interface DrawableBase
     {

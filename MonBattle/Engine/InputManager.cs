@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Capybara_1.Engine
+namespace MonBattle.Engine
 {
     [Flags]
     public enum InputEnum

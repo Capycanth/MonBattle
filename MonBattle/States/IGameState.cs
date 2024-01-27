@@ -1,24 +1,33 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Capybara_1.Engine;
+using MonBattle.Engine;
 using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
+using MonBattle.Entity;
+using Microsoft.Xna.Framework.Content;
 
-namespace Capybara_1.States
+namespace MonBattle.States
 {
     public enum GameStateEnum
     {
-        // Add Game State Enums here for each Game State
+        NONE = 0,
+        HOME = 1,
+        BATTLE = 2,
+        FREEROAM = 3,
+        CUTSCENE = 4,
+        SETTINGS = 5,
     }
 
     public interface IGameState
     {
-        GameStateEnum GameState { get; set; }
+        GameStateEnum GSEnum { get; set; }
         InputManager InputManager { get; set; }
+        List<DrawableBase> Drawables { get; set; }
 
         void Initialize();
-        void LoadContent();
+        void LoadContent(ContentManager _contentManager);
         void Update(GameTime gameTime);
-        void Draw(SpriteBatch spriteBatch);
+        void Draw(SpriteBatch _spriteBatch);
         void UnloadContent();
         void HandleInput()
         {
