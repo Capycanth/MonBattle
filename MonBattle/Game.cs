@@ -19,6 +19,8 @@ namespace MonBattle
         public Game()
         {
             _graphics = new GraphicsDeviceManager(this);
+            _graphics.PreferredBackBufferHeight = 720;
+            _graphics.PreferredBackBufferWidth = 1080;
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }

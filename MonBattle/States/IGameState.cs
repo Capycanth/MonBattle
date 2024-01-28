@@ -32,6 +32,7 @@ namespace MonBattle.States
         void HandleInput()
         {
             InputManager.HandleInput(Keyboard.GetState(), Mouse.GetState());
+            InputManager.Update();
         }
     }
 }

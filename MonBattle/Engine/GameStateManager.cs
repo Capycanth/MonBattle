@@ -40,6 +40,8 @@ namespace MonBattle.Engine
 
         public void Update(GameTime gameTime)
         {
+            currentState?.HandleInput();
+
             if (Game.transitionTo != GameStateEnum.NONE)
             {
                 TransitionByGSEnum();

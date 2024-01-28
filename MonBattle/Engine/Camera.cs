@@ -142,17 +142,17 @@ namespace MonBattle.Engine
 
             if (toPosition != null)
             {
-                Microsoft.Xna.Framework.Game._camera.MoveCamera(toPositionStep);
+                Game._camera.MoveCamera(toPositionStep);
             }
 
             if (!float.IsNaN(toZoom))
             {
-                Microsoft.Xna.Framework.Game._camera.AdjustZoom(toZoomStep);
+                Game._camera.AdjustZoom(toZoomStep);
             }
 
             if (!float.IsNaN(toRotation))
             {
-                Microsoft.Xna.Framework.Game._camera.AdjustRotation(toRotationStep);
+                Game._camera.AdjustRotation(toRotationStep);
             }
 
             this.runtime--;
@@ -162,7 +162,7 @@ namespace MonBattle.Engine
         {
             if (this.toZoom != float.NaN)
             {
-                this.toZoomStep = (this.toZoom - Microsoft.Xna.Framework.Game._camera.Zoom) / runtime;
+                this.toZoomStep = (this.toZoom - Game._camera.Zoom) / runtime;
             }
 
             this.initialized = true;

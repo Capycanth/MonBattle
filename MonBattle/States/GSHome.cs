@@ -42,6 +42,7 @@ namespace MonBattle.States
         public void Initialize()
         {
             gsEnum = GameStateEnum.HOME;
+            inputManager = new InputManager();
             inputManager.KeyBindings = new Dictionary<Keys, InputEnum>()
             {
                 { Keys.Enter, InputEnum.ENTER },
@@ -62,11 +63,11 @@ namespace MonBattle.States
             });
             Game._cache.addSongs(new Dictionary<string, Song>()
             {
-                { "Home_MainThemeMusic", _contentManager.Load<Song>("Sounds/Music/MartianCowboy") }
+                { "Home_MainThemeMusic", _contentManager.Load<Song>("Music/MartianCowboy") }
             });
             Game._cache.addSoundEffects(new Dictionary<string, SoundEffect>()
             {
-                { "Home_StartEffect", _contentManager.Load<SoundEffect>("Sounds/SoundEffect/OilDrumSoft") }
+                { "Home_StartEffect", _contentManager.Load<SoundEffect>("SoundEffects/OilDrumSoftImpact") }
             });
         }
 
