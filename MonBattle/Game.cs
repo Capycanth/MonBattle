@@ -1,8 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonBattle.Engine;
 using MonBattle.States;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace MonBattle
 {
@@ -21,16 +25,23 @@ namespace MonBattle
             _graphics = new GraphicsDeviceManager(this);
             _graphics.PreferredBackBufferHeight = 720;
             _graphics.PreferredBackBufferWidth = 1080;
+            _graphics.SynchronizeWithVerticalRetrace = true;
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            IsFixedTimeStep = true;
+            TargetElapsedTime = TimeSpan.FromSeconds(1d / 60d);
         }
 
         protected override void Initialize()
         {
             _cache = Cache.GetCache();
+            _cache.addTextures(new Dictionary<string, Texture2D>()
+            {
+                { "BlackPixel", Content.Load<Texture2D>("Graphics/BlackPixel") }
+            });
             _camera = Camera.GetCamera();
             _gameStateManager = GameStateManager.GetGameStateManager(Content);
-            transitionTo = GameStateEnum.HOME;
+            _gameStateManager.SetGSTransitions(new List<GameStateTransition>() { new GSTLoad(0, GameStateEnum.HOME) });
 
             base.Initialize();
         }
@@ -49,19 +60,15 @@ namespace MonBattle
 
             _camera.Update(gameTime);
             _gameStateManager.Update(gameTime);
-
-            base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
-            _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, transformMatrix: _camera.TranslationMatrix);
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, transformMatrix: _camera.TranslationMatrix);
             _gameStateManager.Draw(_spriteBatch);
             _spriteBatch.End();
-
-            base.Draw(gameTime);
         }
     }
 }

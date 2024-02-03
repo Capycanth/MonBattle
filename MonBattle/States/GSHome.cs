@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Media;
 using MonBattle.Engine;
 using MonBattle.Entity;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MonBattle.States
 {
@@ -35,7 +36,7 @@ namespace MonBattle.States
                 MediaPlayer.IsRepeating = false;
                 MediaPlayer.Stop();
                 Game._cache.SoundEffectCache["Home_StartEffect"].Play();
-                Game.transitionTo = GameStateEnum.BATTLE;
+                Game._gameStateManager.SetGSTransitions(Config.Internal.LoaderPackage.DefaultGST(GameStateEnum.BATTLE));
             }
         }
 
@@ -54,26 +55,24 @@ namespace MonBattle.States
             MediaPlayer.IsRepeating = true;
         }
 
-        public void LoadContent(ContentManager _contentManager)
+        public async Task LoadContent(ContentManager _contentManager)
         {
-            Game._cache.addTextures(new Dictionary<string, Texture2D>()
+            await Task.Run(() =>
             {
-                { "BlackPixel", _contentManager.Load<Texture2D>("Graphics/BlackPixel") },
-                { "Home_MainBackground", _contentManager.Load<Texture2D>("Graphics/Home_MainBackground") }
+                Game._cache.addTextures(new Dictionary<string, Texture2D>()
+                {
+                    { "BlackPixel", _contentManager.Load<Texture2D>("Graphics/BlackPixel") },
+                    { "Home_MainBackground", _contentManager.Load<Texture2D>("Graphics/Home_MainBackground") }
+                });
+                Game._cache.addSongs(new Dictionary<string, Song>()
+                {
+                    { "Home_MainThemeMusic", _contentManager.Load<Song>("Music/MartianCowboy") }
+                });
+                Game._cache.addSoundEffects(new Dictionary<string, SoundEffect>()
+                {
+                    { "Home_StartEffect", _contentManager.Load<SoundEffect>("SoundEffects/OilDrumSoftImpact") }
+                });
             });
-            Game._cache.addSongs(new Dictionary<string, Song>()
-            {
-                { "Home_MainThemeMusic", _contentManager.Load<Song>("Music/MartianCowboy") }
-            });
-            Game._cache.addSoundEffects(new Dictionary<string, SoundEffect>()
-            {
-                { "Home_StartEffect", _contentManager.Load<SoundEffect>("SoundEffects/OilDrumSoftImpact") }
-            });
-        }
-
-        public void UnloadContent()
-        {
-            Game._cache.emptyCache();
         }
     }
 }

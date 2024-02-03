@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
 using MonBattle.Entity;
 using Microsoft.Xna.Framework.Content;
+using System.Threading.Tasks;
 
 namespace MonBattle.States
 {
@@ -25,14 +26,17 @@ namespace MonBattle.States
         List<DrawableBase> Drawables { get; set; }
 
         void Initialize();
-        void LoadContent(ContentManager _contentManager);
+        Task LoadContent(ContentManager _contentManager);
         void Update(GameTime gameTime);
         void Draw(SpriteBatch _spriteBatch);
-        void UnloadContent();
+        void UnloadContent()
+        {
+            Game._cache.emptyCache();
+        }
         void HandleInput()
         {
-            InputManager.HandleInput(Keyboard.GetState(), Mouse.GetState());
-            InputManager.Update();
+            InputManager?.HandleInput(Keyboard.GetState(), Mouse.GetState());
+            InputManager?.Update();
         }
     }
 }

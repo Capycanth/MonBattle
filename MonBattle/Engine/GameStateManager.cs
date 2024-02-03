@@ -5,6 +5,9 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Input;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace MonBattle.Engine
 {
@@ -26,16 +29,15 @@ namespace MonBattle.Engine
 
         private IGameState currentState;
         private List<GameStateTransition> GSTs = new List<GameStateTransition>();
-        private List<GSTEnum> PauseUpdateStates = new List<GSTEnum>() { GSTEnum.DELAY };
         private ContentManager _contentManager;
 
-        public void ChangeState(IGameState newState)
+        public async Task ChangeState(IGameState newState)
         {
             currentState?.UnloadContent(); // Unload content of the current state if it exists
             currentState = newState;
-            currentState.LoadContent(_contentManager);
+            await currentState.LoadContent(_contentManager);
             currentState.Initialize();
-            DetermineGSTs();
+            GSTs[0].IsCompleted = true;
         }
 
         public void Update(GameTime gameTime)
@@ -45,34 +47,62 @@ namespace MonBattle.Engine
             if (Game.transitionTo != GameStateEnum.NONE)
             {
                 TransitionByGSEnum();
-                Game.transitionTo = GameStateEnum.NONE;
+                return;
             }
 
             if (GSTs.Count == 0)
             {
-                currentState?.Update(gameTime);
-                return;
+                currentState.Update(gameTime);
             }
-
-            if (GSTs[0].IsCompleted)
+            else
             {
-                GSTs.RemoveAt(0);
+                if (GSTs[0].IsCompleted)
+                {
+                    GSTs.RemoveAt(0);
+                    return;
+                }
+                switch (GSTs[0].GSTEnum)
+                {
+                    case GSTEnum.DELAY:
+                        GSTs[0].Update(gameTime);
+                        break;
+                    case GSTEnum.BLACK_FADE:
+                        GSTs[0].Update(gameTime);
+                        break;
+                    case GSTEnum.LOAD:
+                        GSTs[0].Update(gameTime);
+                        break;
+                    default:
+                        break;
+                }
                 return;
             }
-
-            GSTs[0].Update(gameTime);
-
-            if (PauseUpdateStates.Contains(GSTs[0].GSTEnum))
-            {
-                return;
-            }
-
-            currentState?.Update(gameTime);
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            currentState?.Draw(spriteBatch);
+            if (GSTs.Count == 0)
+            {
+                currentState.Draw(spriteBatch);
+            }
+            else
+            {
+                switch (GSTs[0].GSTEnum)
+                {
+                    case GSTEnum.DELAY:
+                        currentState.Draw(spriteBatch);
+                        break;
+                    case GSTEnum.BLACK_FADE:
+                        currentState.Draw(spriteBatch);
+                        GSTs[0].Draw(spriteBatch);
+                        break;
+                    case GSTEnum.LOAD:
+                        GSTs[0].Draw(spriteBatch);
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         private void TransitionByGSEnum()
@@ -83,24 +113,17 @@ namespace MonBattle.Engine
                     ChangeState(new GSHome());
                     break;
                 case GameStateEnum.BATTLE:
+                    ChangeState(new GSBattle());
                     break;
                 default:
                     throw new Exception();
             }
+            Game.transitionTo = GameStateEnum.NONE;
         }
 
-        private void DetermineGSTs()
+        public void SetGSTransitions(List<GameStateTransition> GSTs)
         {
-            switch (Game.transitionTo)
-            {
-                case GameStateEnum.HOME:
-                    // No Transition
-                    break;
-                case GameStateEnum.BATTLE:
-                default:
-                    GSTs.AddRange(LoaderPackage.DefaultGST);
-                    break;
-            }
+            this.GSTs = GSTs;
         }
     }
 
@@ -108,6 +131,7 @@ namespace MonBattle.Engine
     {
         DELAY = 0,
         BLACK_FADE = 1,
+        LOAD = 2,
     }
 
     public abstract class GameStateTransition
@@ -126,7 +150,7 @@ namespace MonBattle.Engine
         public abstract void Draw(SpriteBatch spriteBatch);
 
         public GSTEnum GSTEnum { get { return gstEnum; } set { this.gstEnum = value; } }
-        public bool IsCompleted { get { return completed; } }
+        public bool IsCompleted { get { return completed; } set { this.completed = value; } }
     }
 
     public class GSTBlackFade : GameStateTransition
@@ -135,38 +159,40 @@ namespace MonBattle.Engine
         private Texture2D texture;
         private float frameFade;
         private float currentFade;
+        private bool fadeOut;
 
         public GSTBlackFade(int runtime, bool fadeOut) : base(runtime)
         {
             this.GSTEnum = GSTEnum.BLACK_FADE;
-            rect = new Rectangle(0, 0, 1080, 720);
-            texture = Game._cache.TextureCache["BlackPixel"];
+            this.rect = new Rectangle(0, 0, 1080, 720);
+            this.texture = Game._cache.TextureCache["BlackPixel"];
+            this.fadeOut = fadeOut;
 
-            if (fadeOut)
-            {
-                frameFade = 1f / runtime;
-                currentFade = 0f;
-            }
-            else
-            {
-                frameFade = -1f / runtime;
-                currentFade = 1f;
-            }
+            this.frameFade = 1f / runtime;
+            this.currentFade = this.fadeOut ? 0f : 1f;
         }
 
         public override void Draw(SpriteBatch _spriteBatch)
         {
-            _spriteBatch.Draw(texture, rect, new Color(Color.White, currentFade));
+            _spriteBatch.Draw(this.texture, this.rect, new Color(Color.White, this.currentFade));
         }
 
         public override void Update(GameTime gameTime)
         {
-            if (currentFade > 1f || currentFade < 0)
+            if (this.fadeOut)
+            {
+                this.currentFade += frameFade;
+            } 
+            else
+            {
+                this.currentFade -= frameFade;
+            }
+            this.currentFade = Math.Clamp(this.currentFade, 0f, 1f);
+            if (this.currentFade == 1f || this.currentFade == 0f)
             {
                 this.completed = true;
                 return;
             }
-            currentFade += frameFade;
         }
     }
 
@@ -179,15 +205,45 @@ namespace MonBattle.Engine
 
         public override void Draw(SpriteBatch _spriteBatch)
         {
-            throw new NotImplementedException();
+            // there is none, its a delay, duh...
         }
 
         public override void Update(GameTime gameTime)
         {
             timer.updateTime(gameTime.ElapsedGameTime.Milliseconds);
-            if (timer.isTimeMet(1000))
+            if (timer.isTimeMet(runtime))
             {
                 this.completed = true;
+            }
+        }
+    }
+
+    public class GSTLoad : GameStateTransition
+    {
+        private GameStateEnum gsEnum;
+        private bool ran;
+        private Rectangle rect;
+        private Texture2D texture;
+        public GSTLoad(int runtime, GameStateEnum gsEnum) : base(runtime)
+        {
+            this.GSTEnum = GSTEnum.LOAD;
+            this.gsEnum = gsEnum;
+            this.ran = false;
+            this.rect = new Rectangle(0, 0, 1080, 720);
+            this.texture = Game._cache.TextureCache["BlackPixel"];
+        }
+
+        public override void Draw(SpriteBatch spriteBatch)
+        {
+            spriteBatch.Draw(this.texture, this.rect, Color.White);
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            if (!this.ran)
+            {
+                Game.transitionTo = this.gsEnum;
+                this.ran = true;
             }
         }
     }

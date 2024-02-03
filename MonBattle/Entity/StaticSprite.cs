@@ -28,7 +28,7 @@ namespace MonBattle.Entity
 
         public void Update(GameTime gameTime)
         {
-            throw new NotImplementedException();
+            // No update, it's static, duh...
         }
     }
 }
