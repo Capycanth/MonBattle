@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using MonBattle.States;
 using System.Reflection.Metadata.Ecma335;
+using MonBattle.Engine.Behavior;
+using MonBattle.Entity;
 
 namespace MonBattle.Config.Internal
 {
@@ -37,6 +39,57 @@ namespace MonBattle.Config.Internal
         {
             new GSTBlackFade(1000, false),
         };
+
+        public static IBehaviorNode BasicBehavior(MonCreature mon)
+        {
+            return new ConditionNode(
+                () =>
+                {
+                    if (mon.shouldAttack)
+                    {
+                        return ConditionReturnEnum.ATTACK;
+                    } 
+                    else if (mon.shouldDefend)
+                    {
+                        return ConditionReturnEnum.DEFEND;
+                    } 
+                    else if (mon.shouldWander)
+                    {
+                        return ConditionReturnEnum.WANDER;
+                    }
+                    else if (mon.shouldHeal)
+                    {
+                        return ConditionReturnEnum.HEAL;
+                    }
+                    else
+                    {
+                        return ConditionReturnEnum.FALSE;
+                    }
+                }, 
+                new Dictionary<ConditionReturnEnum, IBehaviorNode>() 
+                {
+                    { 
+                        ConditionReturnEnum.FALSE, 
+                        new ActionNode(() => BehaviorAction.Wander(mon)) 
+                    },
+                    {
+                        ConditionReturnEnum.DEFEND,
+                        new ActionNode(() => BehaviorAction.Defend(mon))
+                    },
+                    {
+                        ConditionReturnEnum.HEAL,
+                        new ActionNode(() => BehaviorAction.Heal(mon))
+                    },
+                    {
+                        ConditionReturnEnum.ATTACK,
+                        new ActionNode(() => BehaviorAction.Attack(mon, mon.Target))
+                    },
+                    {
+                        ConditionReturnEnum.WANDER,
+                        new ActionNode(() => BehaviorAction.Wander(mon))
+                    },
+                });
+        }
 
     }
 }
