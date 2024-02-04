@@ -41,7 +41,7 @@ namespace MonBattle
             });
             _camera = Camera.GetCamera();
             _gameStateManager = GameStateManager.GetGameStateManager(Content);
-            _gameStateManager.SetGSTransitions(new List<GameStateTransition>() { new GSTLoad(0, GameStateEnum.HOME) });
+            _gameStateManager.PushGSTransitions(new List<GameStateTransition>() { new GSTLoad(0, new GSHome()) });
 
             base.Initialize();
         }

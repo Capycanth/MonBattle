@@ -26,17 +26,14 @@ namespace MonBattle.States
         List<DrawableBase> Drawables { get; set; }
 
         void Initialize();
-        Task LoadContent(ContentManager _contentManager);
+        void LoadContent(ContentManager _contentManager);
+        void UnloadContent();
         void Update(GameTime gameTime);
         void Draw(SpriteBatch _spriteBatch);
-        void UnloadContent()
-        {
-            Game._cache.emptyCache();
-        }
+        void Begin(); // Begin music, intro camera animations, intro transitions, etc...
         void HandleInput()
         {
-            InputManager?.HandleInput(Keyboard.GetState(), Mouse.GetState());
-            InputManager?.Update();
+            InputManager.HandleInput(Keyboard.GetState(), Mouse.GetState());
         }
     }
 }

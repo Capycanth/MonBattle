@@ -45,7 +45,7 @@ namespace MonBattle.Engine
         {
             if (cameraAnimations.Count > 0)
             {
-                cameraAnimations[0].Update();
+                cameraAnimations[0].Update(gameTime);
                 if (cameraAnimations[0].IsCompleted)
                 {
                     cameraAnimations.RemoveAt(0);
@@ -127,35 +127,36 @@ namespace MonBattle.Engine
             this.toRotationStep = this.toRotation / runtime;
         }
 
-        public void Update()
+        public void Update(GameTime gameTime)
         {
+            int msElapsed = gameTime.ElapsedGameTime.Milliseconds;
             if (!this.initialized)
             {
                 Initialize();
             }
 
-            if (this.runtime == 0)
+            if (this.runtime < 0)
             {
                 this.isCompleted = true;
                 return;
             }
 
-            if (toPosition != null)
+            if (toPosition != Vector2.Zero)
             {
-                Game._camera.MoveCamera(toPositionStep);
+                Game._camera.MoveCamera(toPositionStep * msElapsed);
             }
 
             if (!float.IsNaN(toZoom))
             {
-                Game._camera.AdjustZoom(toZoomStep);
+                Game._camera.AdjustZoom(toZoomStep * msElapsed);
             }
 
             if (!float.IsNaN(toRotation))
             {
-                Game._camera.AdjustRotation(toRotationStep);
+                Game._camera.AdjustRotation(toRotationStep * msElapsed);
             }
 
-            this.runtime--;
+            this.runtime -= msElapsed;
         }
 
         public void Initialize()
@@ -164,7 +165,6 @@ namespace MonBattle.Engine
             {
                 this.toZoomStep = (this.toZoom - Game._camera.Zoom) / runtime;
             }
-
             this.initialized = true;
         }
 

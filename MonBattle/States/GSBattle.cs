@@ -24,6 +24,7 @@ namespace MonBattle.States
 
         public void Update(GameTime gameTime)
         {
+            inputManager.Update();
             foreach (DrawableBase drawable in drawables)
             {
                 drawable.Update(gameTime);
@@ -52,27 +53,35 @@ namespace MonBattle.States
             {
                 //drawables.Add()
             }
-            
-            //MediaPlayer.Play(Game._cache.SongCache["Battle_MainThemeMusic"]);
-            //Game._camera.AddAnimations(LoaderPackage.BattleOpening);
         }
 
-        public async Task LoadContent(ContentManager _contentManager)
+        public void LoadContent(ContentManager _contentManager)
         {
-            await Task.Run(() =>
+            Game._cache.addTextures(new Dictionary<string, Texture2D>()
             {
-                Game._cache.addTextures(new Dictionary<string, Texture2D>()
-                {
-                    { "BlackPixel", _contentManager.Load<Texture2D>("Graphics/BlackPixel") },
-                    { "RedTriangle", _contentManager.Load<Texture2D>("Graphics/RedTriangle") },
-                    { "BlueTriangle", _contentManager.Load<Texture2D>("Graphics/BlueTriangle") },
-                    { "Battle_MainBackground", _contentManager.Load<Texture2D>("Graphics/Battle_MainBackground") },
-                });
-                    Game._cache.addSongs(new Dictionary<string, Song>()
-                {
-                    { "Battle_MainThemeMusic", _contentManager.Load<Song>("Music/DeathAndAxes") }
-                });
+                { "RedTriangle", _contentManager.Load<Texture2D>("Graphics/RedTriangle") },
+                { "BlueTriangle", _contentManager.Load<Texture2D>("Graphics/BlueTriangle") },
+                { "Battle_MainBackground", _contentManager.Load<Texture2D>("Graphics/Battle_MainBackground") },
             });
+            Game._cache.addSongs(new Dictionary<string, Song>()
+            {
+                { "Battle_MainThemeMusic", _contentManager.Load<Song>("Music/DeathAndAxes") }
+            });
+        }
+
+        public void Begin()
+        {
+            MediaPlayer.Play(Game._cache.SongCache["Battle_MainThemeMusic"]);
+            Game._camera.AddAnimations(LoaderPackage.BattleOpening);
+            Game._gameStateManager.PushGSTransitions(LoaderPackage.GSTBattleIn);
+        }
+
+        public void UnloadContent()
+        {
+            Game._cache.disposeTexture("RedTriangle");
+            Game._cache.disposeTexture("BlueTriangle");
+            Game._cache.disposeTexture("Battle_MainBackground");
+            Game._cache.disposeSong("Battle_MainThemeMusic");
         }
     }
 }
